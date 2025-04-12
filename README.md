@@ -19,9 +19,12 @@ This project provides a Dockerfile and Makefile to build and run a customized ve
     make build
     ```
 
-3.  **Run the Container:** Run the code-server container. This command will automatically remove any existing container with the same name (`minions-code-server-container`) before starting a new one. It mounts the local `./config` directory to `/config` inside the container for persistent configuration.
+3.  **Run the Container:** Run the code-server container. This command will automatically remove any existing container with the same name (`minions-code-server-container`) before starting a new one. It mounts the local `./workspace` directory (or the path specified by `HOST_WORKSPACE_PATH`) to `/config/workspace` inside the container for persistent workspace data. Note that other configurations (like settings.json) will use the container's internal storage unless explicitly mounted.
     ```bash
     make run
+
+    # Or specify a different host path for the workspace:
+    # make run HOST_WORKSPACE_PATH=/path/on/host/my-projects
     ```
     You can then access code-server at `https://localhost:8443`.
 
@@ -45,7 +48,7 @@ This project provides a Dockerfile and Makefile to build and run a customized ve
 -   `Dockerfile`: Defines the Docker image build process.
 -   `Makefile`: Contains commands (`build`, `run`, `push`, `clean`, `help`) to manage the Docker image and container.
 -   `VERSION`: Contains the semantic version string used for tagging the Docker image.
--   `config/` (created on first `make run`): Directory mounted into the container for code-server configuration and workspace data.
+-   `workspace/` (created on first `make run`): Default directory mounted into the container at `/config/workspace`.
 
 ## Development History (Prompts)
 
@@ -60,3 +63,4 @@ This project was created iteratively based on the following requests:
 7.  Modify the `run` target to automatically remove any existing container with the same name before starting.
 8.  Add a basic `README.md` explaining usage.
 9.  Append this development history section to the `README.md`.
+10. Update `Dockerfile` to install extensions to `/config/extensions`. Update `Makefile` to rename config path variable to `HOST_WORKSPACE_PATH`, default it to `./workspace`, and mount it to `/config/workspace` in the container. Update `README.md` accordingly.

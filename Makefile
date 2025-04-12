@@ -2,8 +2,8 @@
 IMAGE_NAME := wangqiang8511/minions-code-server
 IMAGE_TAG := $(shell cat VERSION)
 FULL_IMAGE_NAME := $(IMAGE_NAME):$(IMAGE_TAG)
-# Use ./config relative to the Makefile if not overridden
-HOST_CONFIG_PATH ?= ./config
+# Use ./workspace relative to the Makefile if not overridden for the workspace mount
+HOST_WORKSPACE_PATH ?= ./workspace
 CONTAINER_NAME := minions-code-server-container
 
 # Ensure CODE_SERVER_PASSWORD is set for run target
@@ -25,7 +25,7 @@ help:
 	@echo "  make help           Show this help message"
 	@echo ""
 	@echo "Variables:"
-	@echo "  HOST_CONFIG_PATH  Path on the host for the /config volume (default: ./config)"
+	@echo "  HOST_WORKSPACE_PATH Path on the host for the /config/workspace volume (default: ./workspace)"
 	@echo "  REGISTRY          Target Docker registry (e.g., docker.io, ghcr.io). If set, push will use this."
 
 build: Dockerfile VERSION
@@ -38,10 +38,10 @@ run: build
 	$(call check_password)
 	@echo "Attempting to remove existing container $(CONTAINER_NAME) if it exists..."
 	docker rm -f $(CONTAINER_NAME) || true
-	@echo "Creating host config directory if it doesn't exist: $(HOST_CONFIG_PATH)"
-	mkdir -p $(HOST_CONFIG_PATH)
+	@echo "Creating host workspace directory if it doesn't exist: $(HOST_WORKSPACE_PATH)"
+	mkdir -p $(HOST_WORKSPACE_PATH)
 	@echo "Running Docker container $(CONTAINER_NAME)..."
-	@echo "Using host config path: $(abspath $(HOST_CONFIG_PATH))"
+	@echo "Mounting host workspace path: $(abspath $(HOST_WORKSPACE_PATH)) to /config/workspace"
 	@echo "Port mapping: 8443:8443"
 	docker run -d \
 		--name=$(CONTAINER_NAME) \
@@ -52,7 +52,7 @@ run: build
 		-e SUDO_PASSWORD=$(CODE_SERVER_PASSWORD) \
 		-e DEFAULT_WORKSPACE=/config/workspace \
 		-p 8443:8443 \
-		-v "$(abspath $(HOST_CONFIG_PATH))":/config \
+		-v "$(abspath $(HOST_WORKSPACE_PATH))":/config/workspace \
 		--restart unless-stopped \
 		$(FULL_IMAGE_NAME)
 	@echo "Container $(CONTAINER_NAME) started."
